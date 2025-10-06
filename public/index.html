@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Downloader - No Watermark</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .video-info {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .video-info h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .info-item .label {
+            color: #999;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+
+        .info-item .value {
+            color: #333;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .author-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .author-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+
+        .download-buttons {
+            display: grid;
+            gap: 10px;
+        }
+
+        .download-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(17, 153, 142, 0.3);
+        }
+
+        .download-btn.hd {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .download-btn.audio {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .images-grid img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .images-grid img:hover {
+            transform: scale(1.05);
+        }
+
+        .tutorial {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tutorial h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .tutorial ol {
+            margin-left: 20px;
+            color: #555;
+        }
+
+        .tutorial li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <span>🎵</span>
+                TikTok Downloader
+            </h1>
+            <p>Download video TikTok tanpa watermark - Gratis & Mudah!</p>
+        </div>
+
+        <div class="tutorial">
+            <h4>📝 Cara Pakai:</h4>
+            <ol>
+                <li>Buka aplikasi TikTok dan pilih video yang ingin didownload</li>
+                <li>Klik tombol "Share" (Bagikan) → "Copy Link"</li>
+                <li>Paste link di kotak input di bawah</li>
+                <li>Klik "Download" dan tunggu prosesnya selesai!</li>
+            </ol>
+        </div>
+
+        <div class="input-group">
+            <input 
+                type="text" 
+                id="urlInput" 
+                placeholder="Paste link TikTok di sini... (contoh: https://vt.tiktok.com/xxxxx)"
+            >
+            <button onclick="downloadVideo()">
+                📥 Download
+            </button>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Sedang mengambil data TikTok...</p>
+        </div>
+
+        <div class="result" id="result">
+            <div class="video-info">
+                <div class="author-info" id="authorInfo"></div>
+                
+                <h3 id="videoTitle"></h3>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="label">👁️ Views</div>
+                        <div class="value" id="views">0</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">❤️ Likes</div>
+                        <div class="value" id="likes">0</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">💬 Comments</div>
+                        <div class="value" id="comments">0</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">🔄 Shares</div>
+                        <div class="value" id="shares">0</div>
+                    </div>
+                </div>
+
+                <div id="imagesContainer"></div>
+            </div>
+
+            <div class="download-buttons" id="downloadButtons"></div>
+        </div>
+    </div>
+
+    <script>
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+
+        async function downloadVideo() {
+            const url = document.getElementById('urlInput').value.trim();
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const error = document.getElementById('error');
+            const downloadBtn = document.querySelector('button');
+
+            // Reset
+            error.style.display = 'none';
+            result.style.display = 'none';
+
+            if (!url) {
+                error.textContent = '❌ Masukkan URL TikTok terlebih dahulu!';
+                error.style.display = 'block';
+                return;
+            }
+
+            if (!url.includes('tiktok.com')) {
+                error.textContent = '❌ URL tidak valid! Pastikan URL dari TikTok.';
+                error.style.display = 'block';
+                return;
+            }
+
+            // Show loading
+            loading.style.display = 'block';
+            downloadBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+
+                // Display results
+                displayResults(data.data);
+                result.style.display = 'block';
+
+            } catch (err) {
+                error.textContent = '❌ ' + err.message;
+                error.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+                downloadBtn.disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            // Author info
+            document.getElementById('authorInfo').innerHTML = `
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; color: #333;">@${data.username}</div>
+                    <div style="color: #666; font-size: 0.9rem;">${data.author}</div>
+                </div>
+            `;
+
+            // Video title
+            document.getElementById('videoTitle').textContent = data.title;
+
+            // Stats
+            document.getElementById('views').textContent = formatNumber(data.views);
+            document.getElementById('likes').textContent = formatNumber(data.likes);
+            document.getElementById('comments').textContent = formatNumber(data.comments);
+            document.getElementById('shares').textContent = formatNumber(data.shares);
+
+            // Download buttons
+            const buttonsContainer = document.getElementById('downloadButtons');
+            buttonsContainer.innerHTML = '';
+
+            // Check if it's an image post
+            if (data.images && data.images.length > 0) {
+                const imagesContainer = document.getElementById('imagesContainer');
+                imagesContainer.innerHTML = `
+                    <h4 style="margin-top: 15px; color: #666;">📸 Images (${data.images.length})</h4>
+                    <div class="images-grid">
+                        ${data.images.map((img, i) => `
+                            <a href="${img}" target="_blank" download>
+                                <img src="${img}" alt="Image ${i+1}">
+                            </a>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                document.getElementById('imagesContainer').innerHTML = '';
+                
+                // Video download buttons
+                if (data.video.noWatermark) {
+                    buttonsContainer.innerHTML += `
+                        <a href="${data.video.noWatermark}" class="download-btn" target="_blank" download>
+                            📥 Download Video (No Watermark)
+                        </a>
+                    `;
+                }
+
+                if (data.video.hd) {
+                    buttonsContainer.innerHTML += `
+                        <a href="${data.video.hd}" class="download-btn hd" target="_blank" download>
+                            🎬 Download HD Quality
+                        </a>
+                    `;
+                }
+
+                if (data.video.watermark) {
+                    buttonsContainer.innerHTML += `
+                        <a href="${data.video.watermark}" class="download-btn" target="_blank" download>
+                            📹 Download with Watermark
+                        </a>
+                    `;
+                }
+            }
+
+            // Audio button (if available)
+            if (data.music && typeof data.music === 'string' && data.music.startsWith('http')) {
+                buttonsContainer.innerHTML += `
+                    <a href="${data.music}" class="download-btn audio" target="_blank" download>
+                        🎵 Download Audio Only
+                    </a>
+                `;
+            }
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                downloadVideo();
+            }
+        });
+    </script>
+</body>
+              </html>
